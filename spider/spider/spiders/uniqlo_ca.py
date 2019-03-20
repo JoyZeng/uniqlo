@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
-from urllib.parse import urlparse
+from urllib.parse import urljoin
+
 
 class UniqloCaSpider(scrapy.Spider):
     name = 'uniqlo_ca'
     allowed_domains = ['uniqlo.com/ca']
-    start_urls = [
-        'https://www.uniqlo.com/ca/api/commerce/v3/en/cms?path=%2Fwomen',
-        'https://www.uniqlo.com/ca/api/commerce/v3/en/cms?path=%2Fmen',
-        'https://www.uniqlo.com/ca/api/commerce/v3/en/cms?path=%2Fkids',
-        'https://www.uniqlo.com/ca/api/commerce/v3/en/cms?path=%2Fbaby'
-    ]
+
+    types = ['women', 'men', 'kids', 'baby']
+    base_url = 'https://www.uniqlo.com/ca/api/commerce/v3/en/'
+    start_urls = [f'https://www.uniqlo.com/ca/api/commerce/v3/en/cms?path=/{type}' for type in types]
 
     def parse(self, response):
         json_response = json.loads(response.body_as_unicode())
         body = json_response['result']['body']
-
         # Get category navigation
         for item in body:
             if item['_type'] == 'CategoryGridWithNav':
@@ -28,14 +26,14 @@ class UniqloCaSpider(scrapy.Spider):
             if item['_type'] == 'List' and item['type'] == 'borderedList':
                 accordions = item['children']
                 break
-            
-        # Get category accordion list items
+
+        # Get category accordion list
         for accordion in accordions:
-            accordion_type = accordion['headingText']
-            list_items = accordion['children']['children']
-            for item in list_items:
+            accordion_list_type = accordion['headingText']
+            accordion_list = accordion['children'][0]['children']
+            for item in accordion_list:
                 accordion_list_item_type = item['label']
                 accordion_list_item_url = item['url']
-                url = urlparse.urljoin(response.url, accordion_list_item_url)
+                url = f'{self.base_url}cms?path={accordion_list_item_url}'
                 print(url)
 
