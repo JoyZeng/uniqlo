@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
-from urllib.parse import urljoin
 
 
 class UniqloCaSpider(scrapy.Spider):
     name = 'uniqlo_ca'
-    allowed_domains = ['uniqlo.com/ca']
+    allowed_domains = ['uniqlo.com']
 
     types = ['women', 'men', 'kids', 'baby']
     base_url = 'https://www.uniqlo.com/ca/api/commerce/v3/en/'
@@ -35,5 +34,14 @@ class UniqloCaSpider(scrapy.Spider):
                 accordion_list_item_type = item['label']
                 accordion_list_item_url = item['url']
                 url = f'{self.base_url}cms?path={accordion_list_item_url}'
-                print(url)
+                yield scrapy.Request(url, callback=self.parse_accordion_list_item)
+
+    def parse_accordion_list_item(self, response):
+        json_response = json.loads(response.body_as_unicode())
+        properties = json_response['result']['properties']
+        genders_id = properties['gendersId']
+        classes_id = properties['classesId']
+        title = properties['title']
+        category_id = properties['categoryId']
+        print(category_id)
 
