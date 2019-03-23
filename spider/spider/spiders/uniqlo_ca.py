@@ -1,58 +1,90 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
+from spider.items import UniqloItem
 
 
 class UniqloCaSpider(scrapy.Spider):
     name = 'uniqlo_ca'
     allowed_domains = ['uniqlo.com']
 
-    types = ['women', 'men', 'kids', 'baby']
     base_url = 'https://www.uniqlo.com/ca/api/commerce/v3/en/'
-    start_urls = [f'https://www.uniqlo.com/ca/api/commerce/v3/en/cms?path=/{type}' for type in types]
+    start_urls = ['https://www.uniqlo.com/ca/api/commerce/v3/en/products?limit=1']
+
+    def get_gender_url(self, gender_id):
+        return f'{self.base_url}products?path={gender_id}'
+
+    def get_class_url(self, class_id):
+        return f'{self.base_url}products?path=,{class_id}'
+
+    def get_category_url(self, category_id):
+        return f'{self.base_url}products?path=,,{category_id}'
+
+    def get_subcategory_url(self, subcategory_id):
+        return f'{self.base_url}products?path=,,,{subcategory_id}'
+
+    def get_product_url(self, product_id):
+        return f'{self.base_url}products/{product_id}'
 
     def parse(self, response):
-        # https://www.uniqlo.com/ca/api/commerce/v3/en/cms?path=/women
+        # https://www.uniqlo.com/ca/api/commerce/v3/en/products?limit=1
         json_response = json.loads(response.body_as_unicode())
         status = json_response['status']
         if status == 'ok':
-            body = json_response['result']['body']
-            # Get category navigation
-            for item in body:
-                if item['_type'] == 'CategoryGridWithNav':
-                    category_nav = item['navContent']
-                    break
+            genders = json_response['result']['aggregations']['tree']['genders']
+            for gender in genders:
+                uniqlo_item = UniqloItem()
+                gender_id = gender['id']
+                uniqlo_item['gender_id'] = gender_id
+                uniqlo_item['gender_name'] = gender['name']
+                url = f'{self.get_gender_url(gender_id)}&limit=1'
+                yield scrapy.Request(url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_gender)
 
-            # Get category accordions
-            for item in category_nav:
-                if item['_type'] == 'List' and item['type'] == 'borderedList':
-                    accordions = item['children']
-                    break
-
-            # Get category accordion list
-            for accordion in accordions:
-                accordion_list_type = accordion['headingText']
-                accordion_list = accordion['children'][0]['children']
-                for item in accordion_list:
-                    accordion_list_item_url = item['url']
-                    url = f'{self.base_url}cms?path={accordion_list_item_url}'
-                    yield scrapy.Request(url, callback=self.parse_accordion_list_item)
-
-    def parse_accordion_list_item(self, response):
-        # https://www.uniqlo.com/ca/api/commerce/v3/en/cms?path=/women/outerwear/ultra-light-down
+    def parse_gender(self, response):
+        # https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=384&limit=1&offset=0
+        uniqlo_item = response.meta['uniqlo_item']
         json_response = json.loads(response.body_as_unicode())
         status = json_response['status']
         if status == 'ok':
-            properties = json_response['result']['properties']
-            genders_id = properties['gendersId']
-            classes_id = properties['classesId']
-            title = properties['title']
-            category_id = properties['categoryId']
-            url = f'{self.base_url}products?path=,,{category_id}&limit=24&offset=0'
-            yield scrapy.Request(url, callback=self.parse_product_list)
+            classes = json_response['result']['aggregations']['tree']['classes']
+            for class_ in classes:
+                class_id = class_['id']
+                uniqlo_item['class_id'] = class_id
+                uniqlo_item['class_name'] = class_['name']
+                url = f'{self.get_class_url(class_id)}&limit=1'
+                yield scrapy.Request(url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_class)
 
-    def parse_product_list(self, response):
-        # https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=,,475&limit=24&offset=0
+    def parse_class(self, response):
+        # https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=,470&limit=1&offset=0
+        uniqlo_item = response.meta['uniqlo_item']
+        json_response = json.loads(response.body_as_unicode())
+        status = json_response['status']
+        if status == 'ok':
+            categories = json_response['result']['aggregations']['tree']['categories']
+            for category in categories:
+                category_id = category['id']
+                uniqlo_item['category_id'] = category_id
+                uniqlo_item['category_name'] = category['name']
+                url = f'{self.get_category_url(category_id)}&limit=1'
+                yield scrapy.Request(url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_category)
+
+    def parse_category(self, response):
+        # https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=,,471&limit=1&offset=0
+        uniqlo_item = response.meta['uniqlo_item']
+        json_response = json.loads(response.body_as_unicode())
+        status = json_response['status']
+        if status == 'ok':
+            subcategories = json_response['result']['aggregations']['tree']['subcategories']
+            for subcategory in subcategories:
+                subcategory_id = subcategory['id']
+                uniqlo_item['subcategory_id'] = subcategory_id
+                uniqlo_item['subcategory_name'] = subcategory['name']
+                url = f'{self.get_subcategory_url(subcategory_id)}&limit=24&offset=0'
+                yield scrapy.Request(url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_subcategory)
+
+    def parse_subcategory(self, response):
+        # https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=,,,472&limit=24&offset=0
+        uniqlo_item = response.meta['uniqlo_item']
         json_response = json.loads(response.body_as_unicode())
         status = json_response['status']
         if status == 'ok':
@@ -61,14 +93,20 @@ class UniqloCaSpider(scrapy.Spider):
             items = result['items']
             for item in items:
                 product_id = item['productId']
-                url = f'{self.base_url}products/{product_id}'
-                yield scrapy.Request(url, callback=self.parse_product)
+                uniqlo_item['product_id'] = product_id
+                url = self.get_product_url(product_id)
+                yield scrapy.Request(url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_product)
 
-            next_list_url = f'{response.url.rsplit("=")[0]}{offset}'
-            yield scrapy.Request(next_list_url, callback=self.parse_product_list)
+            next_url = f'{response.url.rsplit("=")[0]}{offset}'
+            yield scrapy.Request(next_url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_subcategory)
 
     def parse_product(self, response):
+        # https://www.uniqlo.com/ca/api/commerce/v3/en/products/E409114-000
+        uniqlo_item = response.meta['uniqlo_item']
         json_response = json.loads(response.body_as_unicode())
         status = json_response['status']
         if status == 'ok':
             item = json_response['result']['items'][0]
+            uniqlo_item['care_instruction'] = item['careInstruction']
+            yield item
+

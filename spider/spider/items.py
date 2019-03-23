@@ -5,10 +5,42 @@
 # See documentation in:
 # https://doc.scrapy.org/en/latest/topics/items.html
 
-import scrapy
+from scrapy import Item, Field
 
 
-class SpiderItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class UniqloItem(Item):
+    gender_id = Field()          # 384
+    gender_name = Field()        # WOMEN
+    class_id = Field()           # 470
+    class_name = Field()         # OUTERWEAR
+    category_id = Field()        # 475
+    category_name = Field()      # Ultra Light Down
+    subcategory_id = Field()     # 476
+    subcategory_name = Field()   # Vest
+    product_id = Field()         # E409114-000
+    care_instruction = Field()
+    composition = Field()
+    design_detail = Field()
+    free_information = Field()
+    images = Field()
+    l1_id = Field()
+    short_description = Field()
+    long_description = Field()
+    name = Field()
+    size_chart_url = Field()
+    size_information = Field()
+    unisex_flag = Field()
+    washing_information = Field()
+
+
+    # color
+    # size
+    # price
+    # l2_id
+    # communication_code
+    # flags
+    # pld
+    # stock
+    # is_sales
+    # rating = Field()
+    # reviews = Field()
