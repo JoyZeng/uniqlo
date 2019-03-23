@@ -30,12 +30,10 @@ class UniqloItem(Item):
     size_information = Field()
     unisex_flag = Field()
     washing_information = Field()
-    base_price = Field()
-    base_price_currency = Field()
 
     # Product attributes that need further process
     images = Field()
-    ratings = Field()
+    rating = Field()
     commodities = Field()
     reviews = Field()
 

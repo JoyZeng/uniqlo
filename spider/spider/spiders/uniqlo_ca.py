@@ -138,8 +138,6 @@ class UniqloCaSpider(scrapy.Spider):
             uniqlo_item['size_information'] = item['sizeInformation']
             uniqlo_item['unisex_flag'] = item['unisexFlag']
             uniqlo_item['washing_information'] = item['washingInformation']
-            uniqlo_item['base_price'] = item['prices']['base']['value']
-            uniqlo_item['base_price_currency'] = item['prices']['base']['currency']['code']
 
             # Product attributes that need further process.
             uniqlo_item['images'] = item['images']
