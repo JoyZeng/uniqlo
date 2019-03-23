@@ -8,6 +8,7 @@ verify_ssl = true
 [packages]
 scrapy = "*"
 scrapy-fake-useragent = "*"
+peewee = "*"
 
 [requires]
 python_version = "3.7"
