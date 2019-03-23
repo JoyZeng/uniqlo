@@ -27,7 +27,10 @@ class UniqloCaSpider(scrapy.Spider):
         return f'{self.base_url}products/{product_id}'
 
     def parse(self, response):
-        # https://www.uniqlo.com/ca/api/commerce/v3/en/products?limit=1
+        """
+        Get product level 1 category (WOMEN, MEN, KIDS, BABY).
+        e.g.: https://www.uniqlo.com/ca/api/commerce/v3/en/products?limit=1
+        """
         json_response = json.loads(response.body_as_unicode())
         status = json_response['status']
         if status == 'ok':
@@ -41,7 +44,10 @@ class UniqloCaSpider(scrapy.Spider):
                 yield scrapy.Request(url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_gender)
 
     def parse_gender(self, response):
-        # https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=384&limit=1&offset=0
+        """
+        Get product level 2 category (e.g., OUTERWEAR).
+        e.g.: https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=384&limit=1&offset=0
+        """
         uniqlo_item = response.meta['uniqlo_item']
         json_response = json.loads(response.body_as_unicode())
         status = json_response['status']
@@ -55,7 +61,10 @@ class UniqloCaSpider(scrapy.Spider):
                 yield scrapy.Request(url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_class)
 
     def parse_class(self, response):
-        # https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=,470&limit=1&offset=0
+        """
+        Get product level 3 category (e.g., Ultra Light Down).
+        e.g.: https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=,470&limit=1&offset=0
+        """
         uniqlo_item = response.meta['uniqlo_item']
         json_response = json.loads(response.body_as_unicode())
         status = json_response['status']
@@ -69,7 +78,10 @@ class UniqloCaSpider(scrapy.Spider):
                 yield scrapy.Request(url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_category)
 
     def parse_category(self, response):
-        # https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=,,471&limit=1&offset=0
+        """
+        Get product level 4 category (e.g., Vest).
+        e.g.: https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=,,471&limit=1&offset=0
+        """
         uniqlo_item = response.meta['uniqlo_item']
         json_response = json.loads(response.body_as_unicode())
         status = json_response['status']
@@ -83,7 +95,10 @@ class UniqloCaSpider(scrapy.Spider):
                 yield scrapy.Request(url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_subcategory)
 
     def parse_subcategory(self, response):
-        # https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=,,,472&limit=24&offset=0
+        """
+        Iterate through products under the subcategory.
+        e.g.: https://www.uniqlo.com/ca/api/commerce/v3/en/products?path=,,,472&limit=24&offset=0
+        """
         uniqlo_item = response.meta['uniqlo_item']
         json_response = json.loads(response.body_as_unicode())
         status = json_response['status']
@@ -101,12 +116,34 @@ class UniqloCaSpider(scrapy.Spider):
             yield scrapy.Request(next_url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_subcategory)
 
     def parse_product(self, response):
-        # https://www.uniqlo.com/ca/api/commerce/v3/en/products/E409114-000
+        """
+        Parse product data then send to pipeline.
+        e.g.: https://www.uniqlo.com/ca/api/commerce/v3/en/products/E409114-000
+        """
         uniqlo_item = response.meta['uniqlo_item']
         json_response = json.loads(response.body_as_unicode())
         status = json_response['status']
         if status == 'ok':
             item = json_response['result']['items'][0]
-            uniqlo_item['care_instruction'] = item['careInstruction']
-            yield item
 
+            uniqlo_item['care_instruction'] = item['careInstruction']
+            uniqlo_item['composition'] = item['composition']
+            uniqlo_item['design_detail'] = item['designDetail']
+            uniqlo_item['free_information'] = item['freeInformation']
+            uniqlo_item['l1_id'] = item['l1Id']
+            uniqlo_item['short_description'] = item['shortDescription']
+            uniqlo_item['long_description'] = item['longDescription']
+            uniqlo_item['name'] = item['name']
+            uniqlo_item['size_chart_url'] = item['sizeChartUrl']
+            uniqlo_item['size_information'] = item['sizeInformation']
+            uniqlo_item['unisex_flag'] = item['unisexFlag']
+            uniqlo_item['washing_information'] = item['washingInformation']
+            uniqlo_item['base_price'] = item['prices']['base']['value']
+            uniqlo_item['base_price_currency'] = item['prices']['base']['currency']['code']
+
+            # Product attributes that need further process.
+            uniqlo_item['images'] = item['images']
+            uniqlo_item['rating'] = item['rating']
+            uniqlo_item['commodities'] = item['l2s']
+            uniqlo_item['reviews'] = item['reviews']
+            yield uniqlo_item

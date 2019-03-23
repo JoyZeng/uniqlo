@@ -22,7 +22,6 @@ class UniqloItem(Item):
     composition = Field()
     design_detail = Field()
     free_information = Field()
-    images = Field()
     l1_id = Field()
     short_description = Field()
     long_description = Field()
@@ -31,16 +30,12 @@ class UniqloItem(Item):
     size_information = Field()
     unisex_flag = Field()
     washing_information = Field()
+    base_price = Field()
+    base_price_currency = Field()
 
+    # Product attributes that need further process
+    images = Field()
+    ratings = Field()
+    commodities = Field()
+    reviews = Field()
 
-    # color
-    # size
-    # price
-    # l2_id
-    # communication_code
-    # flags
-    # pld
-    # stock
-    # is_sales
-    # rating = Field()
-    # reviews = Field()
