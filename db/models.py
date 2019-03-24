@@ -3,10 +3,11 @@
 
 # @Author : Yi(Joy) Zeng
 
-from peewee import *
+import datetime
+from playhouse.postgres_ext import *
 import config
 
-db = PostgresqlDatabase(database=config.DB_NAME,
+db = PostgresqlExtDatabase(database=config.DB_NAME,
                         user=config.DB_USER,
                         password=config.DB_PASSWORD,
                         host=config.DB_HOST,
@@ -24,28 +25,37 @@ class BaseModel(Model):
         legacy_table_names = False
 
 
-class Product(BaseModel):
-    pass
-
-
-class Kind(BaseModel):
-    pass
-
-
-class Commodity(BaseModel):
-    pass
-
-
 class Color(BaseModel):
-    pass
+    code = CharField(primary_key=True)
+    name = CharField()
 
 
 class Size(BaseModel):
-    pass
+    code = CharField(primary_key=True)
+    name = CharField()
 
 
 class Pld(BaseModel):
-    pass
+    code = CharField(primary_key=True)
+    name = CharField()
+
+
+class Kind(BaseModel):
+    id = AutoField()
+    gender_id = IntegerField()
+    class_id = IntegerField()
+    category_id = IntegerField()
+    subcategory_id = IntegerField()
+    gender_name = CharField()
+    class_name = CharField()
+    category_name = CharField()
+    subcategory_name = CharField()
+
+
+class Product(BaseModel):
+    id = CharField(primary_key=True)
+    kind_id = ForeignKeyField(Kind, backref='products')
+    inserted_at = DateTimeTZField(default=datetime.datetime.utcnow())
 
 
 class ProductImage(BaseModel):
@@ -58,3 +68,12 @@ class Rating(BaseModel):
 
 class Review(BaseModel):
     pass
+
+
+class Commodity(BaseModel):
+    pass
+
+
+
+
+
