@@ -75,11 +75,11 @@ class Product(BaseModel):
     free_information = TextField()
     size_char_url = CharField()
     size_information = TextField()
-    unisex_flag = BooleanField()
+    unisex_flag = IntegerField()
     washing_information = TextField()
 
 
-class ProductImage(BaseModel):
+class Image(BaseModel):
     product_id = ForeignKeyField(Product, backref='images')
     color_display_code = CharField()
     type = CharField()
