@@ -18,11 +18,11 @@ class UniqloItem(Item):
     subcategory_id = Field()     # 476
     subcategory_name = Field()   # Vest
     product_id = Field()         # E409114-000
+    l1_id = Field()              # 409114
     care_instruction = Field()
     composition = Field()
     design_detail = Field()
     free_information = Field()
-    l1_id = Field()
     short_description = Field()
     long_description = Field()
     name = Field()

@@ -27,16 +27,19 @@ class BaseModel(Model):
 
 class Color(BaseModel):
     code = CharField(primary_key=True)
+    display_code = CharField()
     name = CharField()
 
 
 class Size(BaseModel):
     code = CharField(primary_key=True)
+    display_code = CharField()
     name = CharField()
 
 
 class Pld(BaseModel):
     code = CharField(primary_key=True)
+    display_code = CharField()
     name = CharField()
 
 
@@ -60,6 +63,7 @@ class Kind(BaseModel):
 class Product(BaseModel):
     id = CharField(primary_key=True)
     kind_id = ForeignKeyField(Kind, backref='products')
+    product_id = CharField()
     inserted_at = DateTimeTZField(default=datetime.datetime.utcnow())
     updated_at = DateTimeTZField(default=datetime.datetime.utcnow())
     name = CharField()
@@ -77,7 +81,7 @@ class Product(BaseModel):
 
 class ProductImage(BaseModel):
     product_id = ForeignKeyField(Product, backref='images')
-    color_code = ForeignKeyField(Color, backref='images')
+    color_display_code = CharField()
     type = CharField()
     url = CharField()
 
@@ -123,6 +127,10 @@ class Commodity(BaseModel):
     is_promo = BooleanField()
     flags = ArrayField(CharField)
 
+    class Meta:
+        indexes = (
+            (('product_id', 'color_code', 'size_code', 'pld_code'), True),
+        )
 
 
 
