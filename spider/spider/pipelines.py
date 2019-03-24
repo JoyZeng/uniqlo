@@ -11,5 +11,5 @@ from db.models import *
 class SpiderPipeline(object):
     def process_item(self, item, spider):
         create_tables_if_needed()
-
+        
         return item
