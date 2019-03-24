@@ -13,9 +13,15 @@ db = PostgresqlDatabase(database=config.DB_NAME,
                         port=config.DB_PORT)
 
 
+def create_tables_if_needed():
+    db.connect()
+    db.create_tables([Color, Size, Pld, Kind, Product, ProductImage, Review, Rating, Commodity])
+
+
 class BaseModel(Model):
     class Meta:
         database = db
+        legacy_table_names = False
 
 
 class Product(BaseModel):
