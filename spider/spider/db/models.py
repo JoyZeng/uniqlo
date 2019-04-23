@@ -4,19 +4,19 @@
 # @Author : Yi(Joy) Zeng
 
 import datetime
-from playhouse.postgres_ext import *
-import config
+from peewee import *
+from spider import config
 
-db = PostgresqlExtDatabase(database=config.DB_NAME,
-                           user=config.DB_USER,
-                           password=config.DB_PASSWORD,
-                           host=config.DB_HOST,
-                           port=config.DB_PORT)
+db = PostgresqlDatabase(database=config.DB_NAME,
+                        user=config.DB_USER,
+                        password=config.DB_PASSWORD,
+                        host=config.DB_HOST,
+                        port=config.DB_PORT)
 
 
 def create_tables_if_needed():
     db.connect()
-    db.create_tables([Color, Size, Pld, Flag, Kind, Product, ProductImage, Review, Rating, Commodity])
+    db.create_tables([Color, Size, Pld, Flag, Kind, Product, Image, Review, Rating, Commodity, CommodityFlag])
 
 
 class BaseModel(Model):
@@ -44,7 +44,8 @@ class Pld(BaseModel):
 
 
 class Flag(BaseModel):
-    code = CharField(primary_key=True)
+    id = IntegerField(primary_key=True)
+    code = CharField()
     name = CharField()
 
 
@@ -64,8 +65,8 @@ class Product(BaseModel):
     id = CharField(primary_key=True)
     kind_id = ForeignKeyField(Kind, backref='products')
     product_id = CharField()
-    inserted_at = DateTimeTZField(default=datetime.datetime.utcnow())
-    updated_at = DateTimeTZField(default=datetime.datetime.utcnow())
+    inserted_at = DateTimeField(default=datetime.datetime.utcnow())
+    updated_at = DateTimeField(default=datetime.datetime.utcnow())
     name = CharField()
     short_description = TextField()
     long_description = TextField()
@@ -73,7 +74,7 @@ class Product(BaseModel):
     composition = TextField()
     design_detail = TextField()
     free_information = TextField()
-    size_char_url = CharField()
+    size_chart_url = CharField()
     size_information = TextField()
     unisex_flag = IntegerField()
     washing_information = TextField()
@@ -81,14 +82,14 @@ class Product(BaseModel):
 
 class Image(BaseModel):
     product_id = ForeignKeyField(Product, backref='images')
-    color_display_code = CharField()
+    color_display_code = CharField(null=True)
     type = CharField()
     url = CharField()
 
 
 class Rating(BaseModel):
     product_id = ForeignKeyField(Product, backref='ratings')
-    inserted_at = DateTimeTZField(default=datetime.datetime.utcnow())
+    inserted_at = DateTimeField(default=datetime.datetime.utcnow())
     average = FloatField()
     fit = FloatField()
     one_count = IntegerField()
@@ -103,7 +104,7 @@ class Review(BaseModel):
     age_range = IntegerField()
     title = TextField()
     comment = TextField()
-    created_at = DateTimeTZField()
+    created_at = DateTimeField()
     gender_code = IntegerField()
     gender_name = CharField()
     location = CharField()
@@ -113,19 +114,18 @@ class Review(BaseModel):
 
 
 class Commodity(BaseModel):
-    id = CharField(primary_key=True)
+    commodity_id = CharField()
     product_id = ForeignKeyField(Product, backref='commodities')
     color_code = ForeignKeyField(Color, backref='commodities')
     size_code = ForeignKeyField(Size, backref='commodities')
     pld_code = ForeignKeyField(Pld, backref='commodities')
-    inserted_at = DateTimeTZField(default=datetime.datetime.utcnow())
+    inserted_at = DateTimeField(default=datetime.datetime.utcnow())
     communication_code = CharField()
     stock_quantity = IntegerField()
     is_sale = BooleanField()
     price = FloatField()
     price_currency = CharField()
     is_promo = BooleanField()
-    flags = ArrayField(CharField)
 
     class Meta:
         indexes = (
@@ -133,4 +133,6 @@ class Commodity(BaseModel):
         )
 
 
-
+class CommodityFlag(BaseModel):
+    commodity_snapshot_id = ForeignKeyField(Commodity, backref='flags')
+    flag_id = ForeignKeyField(Flag, backref='commodities')

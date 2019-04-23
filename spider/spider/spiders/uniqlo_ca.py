@@ -108,7 +108,6 @@ class UniqloCaSpider(scrapy.Spider):
             items = result['items']
             for item in items:
                 product_id = item['productId']
-                uniqlo_item['product_id'] = product_id
                 url = self.get_product_url(product_id)
                 yield scrapy.Request(url, meta={'uniqlo_item': uniqlo_item}, callback=self.parse_product)
 
@@ -131,6 +130,7 @@ class UniqloCaSpider(scrapy.Spider):
             uniqlo_item['design_detail'] = item['designDetail']
             uniqlo_item['free_information'] = item['freeInformation']
             uniqlo_item['l1_id'] = item['l1Id']
+            uniqlo_item['product_id'] = item['productId']
             uniqlo_item['short_description'] = item['shortDescription']
             uniqlo_item['long_description'] = item['longDescription']
             uniqlo_item['name'] = item['name']
