@@ -9,6 +9,8 @@ verify_ssl = true
 scrapy = "*"
 scrapy-fake-useragent = "*"
 peewee = "*"
+psycopg2 = "*"
+psycopg2-binary = "*"
 
 [requires]
 python_version = "3.7"
