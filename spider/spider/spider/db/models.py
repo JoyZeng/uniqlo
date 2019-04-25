@@ -127,11 +127,6 @@ class Commodity(BaseModel):
     price_currency = CharField()
     is_promo = BooleanField()
 
-    class Meta:
-        indexes = (
-            (('product_id', 'color_code', 'size_code', 'pld_code'), True),
-        )
-
 
 class CommodityFlag(BaseModel):
     commodity_snapshot_id = ForeignKeyField(Commodity, backref='flags')
