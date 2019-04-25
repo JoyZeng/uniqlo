@@ -41,4 +41,4 @@ Go to `backend` folder, run the application with following command:
 
 ## Database Design
 
-![uniqlo_db](/Users/joy/Documents/personal_workpace/uniqlo/uniqlo_db.png)
+![uniqlo_db](./uniqlo_db.png)
