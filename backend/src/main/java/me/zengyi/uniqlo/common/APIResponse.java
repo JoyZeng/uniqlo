@@ -1,7 +1,5 @@
 package me.zengyi.uniqlo.common;
 
-import org.apache.tomcat.util.bcel.Const;
-
 import java.util.HashMap;
 
 public class APIResponse extends HashMap<String, Object> {
@@ -17,7 +15,7 @@ public class APIResponse extends HashMap<String, Object> {
     }
 
     public APIResponse failure(Integer code, String message, Object result) {
-        this.put("code", Constant.API_RESPONSE_CODE_SERVER_ERROR);
+        this.put("code", code);
         this.put("status", Constant.API_RESPONSE_STATUS_ERROR);
         this.put("message", message);
         this.put("result", result);
